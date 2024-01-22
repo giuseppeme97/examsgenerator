@@ -51,6 +51,7 @@ class ExamsGenerator():
                         question["options"].append({"text": str(row[f'{self.config["option_denomination"]}_{i + 1}']),
                                                    "correct": True if int(row[self.config['solution_denomination']]) == (i + 1) else False})
                 self.questions.append(question)
+            #print(row[self.config['question_denomination']])
 
     def start(self) -> None:
         self.pool_questions()
