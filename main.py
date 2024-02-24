@@ -18,5 +18,5 @@ if __name__ == "__main__":
      logger.setLevel(logging.INFO)
      
      # Viene istanziato e avviato il generatore con la configurazione passata.
-     exams_generator = ExamsGenerator(config, logger)
+     _ = ExamsGenerator(config, logger=logger)
 

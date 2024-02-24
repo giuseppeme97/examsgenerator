@@ -4,7 +4,7 @@ import random
 
 
 class ExamsGenerator():
-    def __init__(self, config, logger) -> None:
+    def __init__(self, config, logger=None) -> None:
         # Importazione della configurazione e del logger.
         self.config = config
         self.logger = logger
@@ -18,7 +18,8 @@ class ExamsGenerator():
         else:
             self.df = self.get_dataframe(self.config["source_path"])
         
-        logger.info("Sorgente caricata.")
+        if self.logger:
+            self.logger.info("Sorgente caricata.")
 
         # Avvia la generazione.
         self.start()
@@ -116,7 +117,8 @@ class ExamsGenerator():
             # Genera ed esporta il documento Word dell'esame e il relativo correttore.
             exam.write(i)
 
-            self.logger.info(f"Generato esame {i + 1}.")
+            if self.logger:
+                self.logger.info(f"Generato esame {i + 1}.")
             
             # Rimuove l'istanza dell'esame.
             del exam

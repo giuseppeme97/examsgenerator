@@ -1,6 +1,8 @@
 import wx
 import threading
 import time
+from examsgenerator import ExamsGenerator
+
 
 class BackgroundTaskThread(threading.Thread):
     def __init__(self, parent_frame):
@@ -13,7 +15,14 @@ class BackgroundTaskThread(threading.Thread):
         # ******************* #
         # ********TASK******* #
         # ******************* #
-        time.sleep(3)
+        # print(self.parent_frame.new_config)
+        try:
+            _ = ExamsGenerator(self.parent_frame.new_config)
+        except Exception as e:
+            print(e)
+            wx.CallAfter(self.parent_frame.task_error)
+            return
+
         wx.CallAfter(self.parent_frame.task_completed)
 
 
@@ -23,7 +32,7 @@ class MainFrame(wx.Frame):
         self.panel = wx.Panel(self)
         self.create_widgets()
         self.setup_layout()
-        self.SetSize((600, 800))
+        self.SetSize((600, 830))
         
 
     def create_widgets(self):
@@ -47,6 +56,7 @@ class MainFrame(wx.Frame):
         self.text_questions_number = "Numero domande per esame:"
         self.text_options = "Opzioni:"
         self.text_button_start = "Genera!"
+        self.text_error = ["ERRORE", "La generazione ha riscontrato un errore!"]
         self.text_complete = ["COMPLETATO", "Esami generati correttamente!"]
         self.subjects = ["Sistemi e Reti", "TPSIT", "Informatica"]
         self.classrooms = ["3", "4", "5"]
@@ -54,6 +64,8 @@ class MainFrame(wx.Frame):
         self.default_header = "Compito di Sistemi e Reti - A.S. 2023/2024 - Classe 3F"
         self.default_exams_number = "5"
         self.default_questions_number = "30"
+        self.source_path = None
+        self.destination_path = None
 
         # Pulsante per la selezione della sorgente dati.
         self.button_source = wx.Button(self.panel, label=self.text_button_source, style=wx.BU_LEFT)
@@ -103,6 +115,7 @@ class MainFrame(wx.Frame):
 
         # Barra di avanzamento.
         self.progress_bar = wx.Gauge(self.panel, range=100, style=wx.GA_HORIZONTAL | wx.GA_SMOOTH)        
+
 
     def setup_layout(self):
         # Sizer di base.
@@ -170,27 +183,64 @@ class MainFrame(wx.Frame):
         with wx.FileDialog(self, self.text_dialog_source, wildcard="Tutti i file (*.*)|*.*", style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST) as file_dialog:
             if file_dialog.ShowModal() == wx.ID_CANCEL:
                 return
-            file_path = file_dialog.GetPath()
-            self.label_source_path.SetLabel(f"{self.text_label_source_path} {file_path}")
+            self.source_path = file_dialog.GetPath()
+            self.label_source_path.SetLabel(f"{self.text_label_source_path} {self.source_path}")
 
 
     def on_choose_folder(self, event):
         with wx.DirDialog(self, self.text_dialog_destination, style=wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST) as folder_dialog:
             if folder_dialog.ShowModal() == wx.ID_CANCEL:
                 return
-            folder_path = folder_dialog.GetPath()
-            self.label_dstination_path.SetLabel(f"{self.text_label_dstination_path} {folder_path}")
+            self.destination_path = folder_dialog.GetPath()
+            self.label_dstination_path.SetLabel(f"{self.text_label_dstination_path} {self.destination_path}")
 
 
     def build_config(self):
-        pass
+        self.new_config = {
+            "same_folder": False,
+            "source_file": None,
+            "source_extension": ".xlsx", #todo
+            "source_path": self.source_path,
+            "destination_file": self.input_name.GetValue(),
+            "destination_folder": self.destination_path,
+            "subject": self.select_subject.GetStringSelection().upper(),
+            "classroom": int(self.select_classroom.GetStringSelection()),
+            "era": [1, 2, 3],
+            "sector": self.select_type.GetStringSelection().upper(),
+            "title": self.input_header.GetValue(),
+            "heading": "Cognome e Nome: ___________________________________________",
+            "exams_number": int(self.input_exams_number.GetValue()),
+            "questions_number": int(self.input_questions_number.GetValue()),
+            "options_supported": 4,
+            "number_questions": self.checkbox_numeration.GetValue(),
+            "shuffle_questions": self.checkbox_shuffle_questions.GetValue(),
+            "shuffle_options": self.checkbox_shuffle_options.GetValue(),
+            "subject_denomination": "MATERIA",
+            "classroom_denomination": "CLASSE",
+            "era_denomination": "ERA",
+            "sector_denomination": "SETTORE",
+            "question_denomination": "DOMANDA",
+            "solution_denomination": "CORRETTA",
+            "option_denomination": "OPZIONE",
+            "include_denomination": "INCLUDERE"
+        }
 
 
     def on_start_button(self, event):
+        self.build_config()
         self.button_start.Disable()
         self.progress_bar.Pulse()
         task_thread = BackgroundTaskThread(self)
         task_thread.start()
+
+
+    def task_error(self):
+        self.progress_bar.SetValue(0)
+        self.button_start.Enable()
+        self.Layout()
+        dlg = wx.MessageDialog(self, self.text_error[1], self.text_error[0], wx.OK | wx.ICON_INFORMATION)
+        dlg.ShowModal()
+        dlg.Destroy()
 
 
     def task_completed(self):
