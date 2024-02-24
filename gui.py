@@ -12,12 +12,8 @@ class BackgroundTaskThread(threading.Thread):
 
 
     def run(self):
-        # ******************* #
-        # ********TASK******* #
-        # ******************* #
-        # print(self.parent_frame.new_config)
         try:
-            _ = ExamsGenerator(self.parent_frame.new_config)
+            ExamsGenerator(self.parent_frame.new_config)
         except Exception as e:
             print(e)
             wx.CallAfter(self.parent_frame.task_error)
@@ -197,12 +193,9 @@ class MainFrame(wx.Frame):
 
     def build_config(self):
         self.new_config = {
-            "same_folder": False,
-            "source_file": None,
-            "source_extension": ".xlsx", #todo
             "source_path": self.source_path,
-            "destination_file": self.input_name.GetValue(),
-            "destination_folder": self.destination_path,
+            "destination_path": self.destination_path,
+            "file_name": self.input_name.GetValue(),
             "subject": self.select_subject.GetStringSelection().upper(),
             "classroom": int(self.select_classroom.GetStringSelection()),
             "era": [1, 2, 3],

@@ -1,10 +1,7 @@
 {
-    "same_folder": true,
-    "source_file": "Domande",
-    "source_extension": ".xlsx",
-    "source_path": null,
-    "destination_file": "exam",
-    "destination_folder": null,
+    "source_path": "Domande.xlsx",
+    "destination_path": "./",
+    "file_name": "exam",
     "subject": "SISTEMI E RETI",
     "classroom": 3,
     "era": [1, 2, 3],

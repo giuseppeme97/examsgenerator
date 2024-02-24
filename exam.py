@@ -73,9 +73,6 @@ class Exam():
                 runner = self.doc_solutions.add_paragraph(style='List Bullet').add_run(question['options'][i]['text'])
                 runner.bold = question['options'][i]['correct']
         
-        if self.config["same_folder"]:
-            self.doc.save(f"{self.config['destination_file']}_{str(exam_number + 1)}.docx")
-            self.doc_solutions.save(f"{self.config['destination_file']}_{str(exam_number + 1)}_solutions.docx")
-        else:
-            self.doc.save(f"{self.config['destination_folder']}/{self.config['destination_file']}_{str(exam_number + 1)}.docx")
-            self.doc_solutions.save(f"{self.config['destination_folder']}/{self.config['destination_file']}_{str(exam_number + 1)}_solutions.docx")
+            self.doc.save(f"{self.config['destination_path']}/{self.config['file_name']}_{str(exam_number + 1)}.docx")
+            self.doc_solutions.save(f"{self.config['destination_path']}/{self.config['file_name']}_{str(exam_number + 1)}_solutions.docx")
+            

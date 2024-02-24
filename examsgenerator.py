@@ -1,7 +1,7 @@
 import pandas as pd
 from exam import Exam
 import random
-
+import os
 
 class ExamsGenerator():
     def __init__(self, config, logger=None) -> None:
@@ -10,13 +10,7 @@ class ExamsGenerator():
         self.logger = logger
 
         # Caricamento della sorgente dati.
-        # La sorgente dati può essere presente nella stessa directory dello script.
-        if self.config["same_folder"]:
-            self.df = self.get_dataframe(f"{self.config['source_file']}{self.config['source_extension']}")
-        
-        # La sorgente dati può essere caricata da un path specifico.
-        else:
-            self.df = self.get_dataframe(self.config["source_path"])
+        self.load_source()
         
         if self.logger:
             self.logger.info("Sorgente caricata.")
@@ -25,14 +19,16 @@ class ExamsGenerator():
         self.start()
 
 
-    def get_dataframe(self, path) -> object:
+    def load_source(self) -> None:
+        _, ext = os.path.splitext(self.config["source_path"])
+            
         # Viene caricata la sorgente dati, nel caso si tratti di un documento Excel.
-        if self.config["source_extension"] == ".xlsx" or self.config["source_extension"] == ".xls":
-            return pd.read_excel(path)
+        if ext in (".xlsx", ".xls"):
+            self.df = pd.read_excel(self.config["source_path"])
         
         # Viene caricata la sorgente dati, nel caso si tratti di un documento CSV.
-        elif self.config["source_extension"] == ".csv":
-            return pd.read_csv(path,  sep=";")
+        elif ext == ".csv":
+            self.df = pd.read_csv(self.config["source_path"],  sep=";")
         
         # Errore nel caricamento della sorgente dati.
         else:
