@@ -5,7 +5,7 @@ from docx.oxml.ns import qn
 from docx.oxml import OxmlElement, ns
 
 
-class Exam:
+class Exam():
     def __init__(self, config, questions) -> None:
         # Importazione della configurazione.
         self.config = config
@@ -79,16 +79,3 @@ class Exam:
         else:
             self.doc.save(f"{self.config['destination_folder']}/{self.config['destination_file']}_{str(exam_number + 1)}.docx")
             self.doc_solutions.save(f"{self.config['destination_folder']}/{self.config['destination_file']}_{str(exam_number + 1)}_solutions.docx")
-
-
-    # def write_exam_with_solutions(self, exam_number) -> None:
-    #     for index, question in enumerate(self.questions):
-    #         self.doc_solutions.add_heading(f"{index + 1}) {question['question']}", 3)
-    #         for i in range(0, self.config['options_supported']):
-    #             runner = self.doc_solutions.add_paragraph(style='List Bullet').add_run(question['options'][i]['text'])
-    #             runner.bold = question['options'][i]['correct']
-        
-    #     if self.config["same_folder"]:
-    #         self.doc_solutions.save(f"{self.config['destination_file']}_{str(exam_number + 1)}_solutions.docx")
-    #     else:
-    #         self.doc_solutions.save(f"{self.config['destination_folder']}/{self.config['destination_file']}_{str(exam_number + 1)}_solutions.docx")

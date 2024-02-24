@@ -1,5 +1,7 @@
 altgraph==0.17.3
 autopep8==2.0.2
+colorama==0.4.6
+colorlog==6.8.2
 docopt==0.6.2
 et-xmlfile==1.1.0
 lxml==4.9.1

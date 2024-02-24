@@ -1,12 +1,24 @@
 from examsgenerator import ExamsGenerator
 import json
+import logging
+from colorama import init, Fore, Style
 
-# Viene letto il JSON con la configurazione da importare.
-with open("settings.json", 'r') as j:
-     config = json.loads(j.read())
+if __name__ == "__main__":
+     # Viene letto il JSON con la configurazione da importare.
+     with open("settings.json", 'r') as j:
+          config = json.loads(j.read())
 
-# Viene avviato il generatore.
-exams_generator = ExamsGenerator(config)
-exams_generator.start()    
+     # Viene istanziato e configurato il logger.
+     init(autoreset=True)
+     logger = logging.getLogger(__name__)
+     console_handler = logging.StreamHandler()
+     formatter = logging.Formatter(f"{Style.BRIGHT}{Fore.GREEN}%s{Style.RESET_ALL}" % "%(message)s")
+     console_handler.setFormatter(formatter)
+     logger.addHandler(console_handler)
+     logger.setLevel(logging.INFO)
+     
+     # Viene istanziato il generatore.
+     exams_generator = ExamsGenerator(config, logger)
+     exams_generator.start()    
 
 
