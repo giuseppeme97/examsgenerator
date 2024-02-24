@@ -17,8 +17,6 @@ if __name__ == "__main__":
      logger.addHandler(console_handler)
      logger.setLevel(logging.INFO)
      
-     # Viene istanziato il generatore.
+     # Viene istanziato e avviato il generatore con la configurazione passata.
      exams_generator = ExamsGenerator(config, logger)
-     exams_generator.start()    
-
 

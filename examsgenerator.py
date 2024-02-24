@@ -20,6 +20,9 @@ class ExamsGenerator():
         
         logger.info("Sorgente caricata.")
 
+        # Avvia la generazione.
+        self.start()
+
 
     def get_dataframe(self, path) -> object:
         # Viene caricata la sorgente dati, nel caso si tratti di un documento Excel.
