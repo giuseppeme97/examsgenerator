@@ -43,12 +43,6 @@ class ExamsGenerator():
             # Controlla se la classe dell'i-esima riga è quella scelta.
             row[self.config['classroom_denomination']] == self.config['classroom'] and
 
-            # Controlla se l'era dell'i-esima riga è quella scelta.
-            row[self.config['era_denomination']] in self.config['era'] and
-
-            # Controlla se il settore dell'i-esima riga è quella scelto.
-            row[self.config['sector_denomination']] == self.config['sector'] and
-
             # Controlla se l'i-esima riga è da includere nelle domande degli esami.
             row[self.config['include_denomination']] == "SI"
         )
