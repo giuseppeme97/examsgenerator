@@ -5,31 +5,19 @@ from docx.oxml.ns import qn
 from docx.oxml import OxmlElement, ns
 
 
-class Exam():
-    def __init__(self, config, questions, exam_number, solutions) -> None:
-        # Importazione della configurazione.
+class ExamWriter():
+    def __init__(self, config, questions, exam_number) -> None:
         self.config = config
-
-        # Importazione delle domande assegnate a questo esame.
         self.questions = questions
-
-        # Importazione della numerazione assegnata a questo esame.
         self.exam_number = exam_number
-
-        # Importazione della scelta di generare il correttore.
-        self.solutions = solutions
-
-        # Creazione e settaggio di un nuovo documento Word per l'esame.
         self.doc = Document()
         self.set_document(self.doc, self.config['title'], self.config['heading'])
 
-        # Creazione e settaggio di un nuovo documento Word per il correttore.
-        if self.solutions:
+        if self.config["solutions"]:
             self.doc_solutions = Document()
             self.set_document(self.doc_solutions, self.config['title'], self.config['heading'])
         
 
-    # Metodo per il settaggio preliminare del documento Word.
     def set_document(self, doc, title, heading) -> None:
         if self.config["number_heading"]:
             par = doc.add_paragraph(title + f" - #{self.exam_number}")
@@ -50,7 +38,6 @@ class Exam():
         cols.set(qn('w:num'),'2')
 
 
-    # Metodo per il settaggio della numerazione automatica delle pagine.
     def add_page_number(self, run) -> None:
         fldChar1 = OxmlElement('w:fldChar')
         fldChar1.set(ns.qn('w:fldCharType'), 'begin')
@@ -65,28 +52,23 @@ class Exam():
 
     
     def write(self) -> None:
-        # Vengono scritte le singole domande all'interno del documento e nel relativo correttore.
         for index, question in enumerate(self.questions):
-            # Se la configurazione lo consente, aggiunge il numero ad ogni domanda.
             if self.config["number_questions"]:
                 self.doc.add_heading(f"{index + 1}) {question['question']}", 3)
-                if self.solutions:
+                if self.config["solutions"]:
                     self.doc_solutions.add_heading(f"{index + 1}) {question['question']}", 3)
-            
-            # Altrimenti, viene scritto solo il testo della domanda.
             else:
                 self.doc.add_heading(f"{question['question']}", 3)
-                if self.solutions:
+                if self.config["solutions"]:
                     self.doc_solutions.add_heading(f"{question['question']}", 3)
             
-            # Vengono scritte le opzioni di risposta della domanda.
             for i in range(0, self.config['options_supported']):
                 self.doc.add_paragraph(style='List Bullet').add_run(question['options'][i]['text'])
-                if self.solutions:
+                if self.config["solutions"]:
                     runner = self.doc_solutions.add_paragraph(style='List Bullet').add_run(question['options'][i]['text'])
                     runner.bold = question['options'][i]['correct']
         
             self.doc.save(f"{self.config['destination_path']}/{self.config['file_name']}_{str(self.exam_number)}.docx")
-            if self.solutions:
+            if self.config["solutions"]:
                 self.doc_solutions.save(f"{self.config['destination_path']}/{self.config['file_name']}_{str(self.exam_number)}_solutions.docx")
             
