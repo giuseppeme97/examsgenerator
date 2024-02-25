@@ -102,10 +102,10 @@ class ExamsGenerator():
             exam_questions = self.shuffle_questions()
 
             # Viene creata un'istanza di esame con le domande estratte.
-            exam = Exam(self.config, exam_questions)
+            exam = Exam(self.config, exam_questions, i + 1, self.config["solutions"])
             
-            # Genera ed esporta il documento Word dell'esame e il relativo correttore.
-            exam.write(i)
+            # Genera ed esporta il documento Word dell'esame e, se indicato, il relativo correttore.
+            exam.write()
 
             if self.logger:
                 self.logger.info(f"Generato esame {i + 1}.")
