@@ -2,6 +2,7 @@ from examsgenerator import ExamsGenerator
 import json
 import logging
 from colorama import init, Fore, Style
+import pandas as pd
 
 if __name__ == "__main__":
      # Viene letto il JSON con la configurazione da importare.
@@ -18,5 +19,6 @@ if __name__ == "__main__":
      logger.setLevel(logging.INFO)
      
      # Viene istanziato e avviato il generatore con la configurazione passata.
-     ExamsGenerator(config, logger=logger)
+     gen = ExamsGenerator(config, logger=logger)
+     print(gen.get_rows())
 

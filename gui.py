@@ -1,6 +1,5 @@
 import wx
 import threading
-import time
 from examsgenerator import ExamsGenerator
 
 
@@ -13,7 +12,8 @@ class BackgroundTaskThread(threading.Thread):
 
     def run(self) -> None:
         try:
-            ExamsGenerator(self.parent_frame.new_config)
+            gen = ExamsGenerator(self.parent_frame.new_config)
+            gen.start()
         except Exception as e:
             print(e)
             wx.CallAfter(self.parent_frame.task_error)
@@ -28,7 +28,7 @@ class MainFrame(wx.Frame):
         self.panel = wx.Panel(self)
         self.create_widgets()
         self.setup_layout()
-        self.SetSize((600, 830))
+        self.SetSize((600, 860))
         
 
     def create_widgets(self) -> None:
@@ -42,8 +42,9 @@ class MainFrame(wx.Frame):
         self.text_checkbox_number_header = "Numera intestazione"
         self.text_checkbox_number_questions = "Numera domande"
         self.text_checkbox_shuffle_questions = "Mescola domande"
-        self.text_checkbox_shuffle_options = "Mescola opzioni"
+        self.text_checkbox_shuffle_options = "Mescola risposte"
         self.text_checkbox_solutions = "Genera correttori"
+        self.text_checkbox_inclusion = "Inclusione singola"
         self.text_prefix = "Prefisso file:"
         self.text_subject = "Materia:"
         self.text_classroom = "Classe:"
@@ -55,8 +56,8 @@ class MainFrame(wx.Frame):
         self.text_error = ["Errore", "La generazione ha riscontrato un errore."]
         self.text_review = ["Attenzione", "Rivedere i campi inseriti e riprovare."]
         self.text_complete = ["Completato", "Esami generati correttamente!"]
-        self.subjects = ["Sistemi e Reti", "TPSIT", "Informatica"]
-        self.classrooms = ["3", "4", "5"]
+        self.subjects = []
+        self.classrooms = []
         self.default_header = "Compito di ??? - A.S. ????/???? - Classe ??"
         self.default_exams_number = "5"
         self.default_questions_number = "30"
@@ -100,6 +101,7 @@ class MainFrame(wx.Frame):
         self.checkbox_shuffle_questions = wx.CheckBox(self.panel, label=self.text_checkbox_shuffle_questions)
         self.checkbox_shuffle_options = wx.CheckBox(self.panel, label=self.text_checkbox_shuffle_options)
         self.checkbox_solutions = wx.CheckBox(self.panel, label=self.text_checkbox_solutions)
+        self.checkbox_inclusion = wx.CheckBox(self.panel, label=self.text_checkbox_inclusion)
 
         # Linea di separazione.
         self.separator = wx.StaticLine(self.panel, style=wx.LI_HORIZONTAL)
@@ -156,13 +158,14 @@ class MainFrame(wx.Frame):
         main_sizer.Add(self.checkbox_shuffle_questions, 0, wx.ALL | wx.EXPAND, 5)
         main_sizer.Add(self.checkbox_shuffle_options, 0, wx.ALL | wx.EXPAND, 5)
         main_sizer.Add(self.checkbox_solutions, 0, wx.ALL | wx.EXPAND, 5)
+        main_sizer.Add(self.checkbox_inclusion, 0, wx.ALL | wx.EXPAND, 5)
 
         # Sizer per la gestione del pulsante di avvio della generazione.
         main_sizer.Add(self.separator, 0, wx.ALL | wx.EXPAND, 5)
         main_sizer.Add(self.button_start, 0, wx.ALL | wx.CENTRE, 5)
 
         # Sizer per la gestione dell'avanzamento della generazione.
-        main_sizer.Add(self.progress_bar, 0, wx.ALL | wx.EXPAND, 5)
+        main_sizer.Add(self.progress_bar, 0, wx.ALL | wx.EXPAND | wx.CENTRE, 5)
 
         self.panel.SetSizer(main_sizer)
         self.Fit()
@@ -173,7 +176,27 @@ class MainFrame(wx.Frame):
             if file_dialog.ShowModal() == wx.ID_CANCEL:
                 return
             self.source_path = file_dialog.GetPath()
-            self.label_source_path.SetLabel(f"{self.text_label_source_path} {self.source_path}")
+            
+            # ANALISI DELLA SORGENTE
+            config = {
+                "source_path": self.source_path,
+                "subject_denomination": "MATERIA",
+                "classroom_denomination": "CLASSE",
+                "question_denomination": "DOMANDA",
+                "solution_denomination": "CORRETTA",
+                "option_denomination": "OPZIONE",
+                "include_denomination": "INCLUDERE"
+            }
+            self.generator = ExamsGenerator(config)
+            self.select_subject.Clear()
+            self.select_classroom.Clear()
+            try:
+                self.select_subject.AppendItems(self.generator.get_subjects())
+                self.select_classroom.AppendItems(list(map(str, self.generator.get_classrooms())))
+                self.label_source_path.SetLabel(f"{self.text_label_source_path} {self.source_path}")
+            except:
+                self.show_dialog("ERRORE", "Riscontrati problemi nell'analisi della sorgente dati.")
+            self.Layout()
 
 
     def on_choose_folder(self, event) -> None:
@@ -213,6 +236,7 @@ class MainFrame(wx.Frame):
                 "shuffle_questions": self.checkbox_shuffle_questions.GetValue(),
                 "shuffle_options": self.checkbox_shuffle_options.GetValue(),
                 "solutions": self.checkbox_solutions.GetValue(),
+                "inclusion": self.checkbox_inclusion.GetValue(),
                 "subject_denomination": "MATERIA",
                 "classroom_denomination": "CLASSE",
                 "question_denomination": "DOMANDA",

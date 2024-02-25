@@ -15,8 +15,9 @@ class ExamsGenerator():
         if self.logger:
             self.logger.info("Sorgente caricata.")
 
-        # Avvia la generazione.
-        self.start()
+    
+    def update_config(self, config) -> None:
+        self.config = config
 
 
     def load_source(self) -> None:
@@ -34,19 +35,40 @@ class ExamsGenerator():
         else:
             assert "Sorgente dati non corretta."
 
+
+    def get_subjects(self) -> list:
+        return sorted(pd.Series(self.df[self.config["subject_denomination"]].unique()).dropna().tolist()) 
+
+
+    def get_classrooms(self) -> list:
+        return sorted(list(map(int, pd.Series(self.df[self.config["classroom_denomination"]].unique()).dropna().tolist())))
+
+
+    def get_rows(self) -> int:
+        return self.df.shape[0]
+
     
     def check_row(self, row) -> bool:
-        return (
-            # Controlla se la materia dell'i-esima riga è quella scelta.
-            row[self.config['subject_denomination']] == self.config['subject'] and
+        if self.config['inclusion']:
+            return (
+                # Controlla se la materia dell'i-esima riga è quella scelta.
+                row[self.config['subject_denomination']] == self.config['subject'] and
 
-            # Controlla se la classe dell'i-esima riga è quella scelta.
-            row[self.config['classroom_denomination']] == self.config['classroom'] and
+                # Controlla se la classe dell'i-esima riga è quella scelta.
+                row[self.config['classroom_denomination']] == self.config['classroom'] and
 
-            # Controlla se l'i-esima riga è da includere nelle domande degli esami.
-            row[self.config['include_denomination']] == "SI"
-        )
+                # Controlla se l'i-esima riga è da includere nelle domande degli esami.
+                row[self.config['include_denomination']] == "SI"
+            )
+        else:
+            return (
+                # Controlla se la materia dell'i-esima riga è quella scelta.
+                row[self.config['subject_denomination']] == self.config['subject'] and
 
+                # Controlla se la classe dell'i-esima riga è quella scelta.
+                row[self.config['classroom_denomination']] == self.config['classroom']
+            )
+            
     
     def pool_questions(self) -> None:
         # Viene inizializzato l'elenco delle domande da includere nell'i-esimo esame.
