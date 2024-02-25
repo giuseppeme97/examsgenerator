@@ -7,7 +7,6 @@ class ExamsGenerator():
     def __init__(self, config) -> None:
         self.config = config
         self.load_source()
-        print("Sorgente caricata.")
 
     
     def update_config(self, config) -> None:
@@ -23,6 +22,9 @@ class ExamsGenerator():
             self.df = pd.read_csv(self.config["source_path"],  sep=";")
         else:
             assert "Sorgente dati non corretta."
+            return
+        
+        print("Sorgente caricata.")
 
 
     def get_subjects(self) -> list:
@@ -68,7 +70,7 @@ class ExamsGenerator():
                 self.questions.append(question)
 
 
-    def shuffle_questions(self) -> list:
+    def get_exam_questions(self) -> list:
         if self.config['shuffle_questions']:
             random.shuffle(self.questions)
         
@@ -83,8 +85,5 @@ class ExamsGenerator():
         self.pool_questions()
 
         for i in range(0, self.config["exams_number"]):
-            exam_questions = self.shuffle_questions()
-            exam = ExamWriter(self.config, exam_questions, i + 1)
-            exam.write()            
+            ExamWriter(self.config, self.get_exam_questions(), i + 1)
             print(f"Generato esame {i + 1}.")
-            del exam
