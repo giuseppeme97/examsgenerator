@@ -1,26 +1,6 @@
 import wx
-import threading
 from examsgenerator import ExamsGenerator
-
-
-class BackgroundTaskThread(threading.Thread):
-    def __init__(self, parent_frame):
-        threading.Thread.__init__(self)
-        self.parent_frame = parent_frame
-        self.daemon = True
-
-
-    def run(self) -> None:
-        try:
-            gen = ExamsGenerator(self.parent_frame.new_config)
-            gen.start()
-        except Exception as e:
-            print(e)
-            wx.CallAfter(self.parent_frame.task_error)
-            return
-
-        wx.CallAfter(self.parent_frame.task_completed)
-
+from task import Task
 
 class MainFrame(wx.Frame):
     def __init__(self, *args, **kwargs):
@@ -28,7 +8,7 @@ class MainFrame(wx.Frame):
         self.panel = wx.Panel(self)
         self.create_widgets()
         self.setup_layout()
-        self.SetSize((600, 860))
+        self.SetSize((600, 950))
         
 
     def create_widgets(self) -> None:
@@ -111,7 +91,7 @@ class MainFrame(wx.Frame):
         self.button_start.Bind(wx.EVT_BUTTON, self.start)
 
         # Barra di avanzamento.
-        self.progress_bar = wx.Gauge(self.panel, range=100, style=wx.GA_HORIZONTAL | wx.GA_SMOOTH)        
+        self.progress_bar = wx.Gauge(self.panel, range=100, style=wx.GA_HORIZONTAL | wx.GA_SMOOTH)     
 
 
     def setup_layout(self) -> None:
@@ -171,14 +151,8 @@ class MainFrame(wx.Frame):
         self.Fit()
 
 
-    def on_choose_file(self, event) -> None:
-        with wx.FileDialog(self, self.text_dialog_source, wildcard="Tutti i file (*.*)|*.*", style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST) as file_dialog:
-            if file_dialog.ShowModal() == wx.ID_CANCEL:
-                return
-            self.source_path = file_dialog.GetPath()
-            
-            # ANALISI DELLA SORGENTE
-            config = {
+    def analyze_source(self):
+        config = {
                 "source_path": self.source_path,
                 "subject_denomination": "MATERIA",
                 "classroom_denomination": "CLASSE",
@@ -187,20 +161,28 @@ class MainFrame(wx.Frame):
                 "option_denomination": "OPZIONE",
                 "include_denomination": "INCLUDERE"
             }
-            
-            try:
-                self.generator = ExamsGenerator(config)
-                self.select_subject.Clear()
-                self.select_classroom.Clear()
-                self.select_subject.AppendItems(self.generator.get_subjects())
-                self.select_classroom.AppendItems(list(map(str, self.generator.get_classrooms())))
-                self.label_source_path.SetLabel(f"{self.text_label_source_path} {self.source_path}")
-                self.show_dialog("OK", f"Sorgente caricata correttamente. Individuate {self.generator.get_rows()} domande.")
-            except:
-                self.source_path = ""
-                self.show_dialog("Errore", "Riscontrati problemi nell'analisi della sorgente dati.")
+        
+        self.select_subject.Clear()
+        self.select_classroom.Clear()
+        
+        try:
+            self.generator = ExamsGenerator(config)
+            self.select_subject.AppendItems(self.generator.get_subjects())
+            self.select_classroom.AppendItems(list(map(str, self.generator.get_classrooms())))
             self.label_source_path.SetLabel(f"{self.text_label_source_path} {self.source_path}")
-            self.Layout()
+            self.show_dialog("OK", f"Sorgente caricata correttamente. Individuate {self.generator.get_rows()} domande.")
+        except:
+            self.source_path = ""
+            self.show_dialog("Errore", "Riscontrati problemi nell'analisi della sorgente dati.")
+
+
+    def on_choose_file(self, event) -> None:
+        with wx.FileDialog(self, self.text_dialog_source, wildcard="Tutti i file (*.*)|*.*", style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST) as file_dialog:
+            if file_dialog.ShowModal() == wx.ID_CANCEL:
+                return
+            self.source_path = file_dialog.GetPath()
+            self.analyze_source()
+            self.label_source_path.SetLabel(f"{self.text_label_source_path} {self.source_path}")
 
 
     def on_choose_folder(self, event) -> None:
@@ -255,7 +237,7 @@ class MainFrame(wx.Frame):
     def start(self, event) -> None:
         if self.build_config():
             self.start_progress()
-            task_thread = BackgroundTaskThread(self)
+            task_thread = Task(self)
             task_thread.start()
         else:
             self.show_dialog(self.text_review[0], self.text_review[1])
