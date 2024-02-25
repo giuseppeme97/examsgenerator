@@ -75,7 +75,7 @@ class MainFrame(wx.Frame):
         # Pulsante per la selezione della destinazione degli esami.
         self.button_destination = wx.Button(self.panel, label=self.text_button_destination, style=wx.BU_LEFT)
         self.button_destination.Bind(wx.EVT_BUTTON, self.on_choose_folder)
-        self.label_dstination_path = wx.StaticText(self.panel, label=self.text_label_dstination_path)
+        self.label_destination_path = wx.StaticText(self.panel, label=self.text_label_dstination_path)
 
         # Input per l'inserimento dei nomi degli esami.
         self.input_name = wx.TextCtrl(self.panel)
@@ -130,7 +130,7 @@ class MainFrame(wx.Frame):
         # Sizer per la gestione della cartella di destinazione.
         folder_sizer = wx.BoxSizer(wx.VERTICAL)
         folder_sizer.Add(self.button_destination, 0, wx.ALL, 5)
-        folder_sizer.Add(self.label_dstination_path, 0, wx.ALL | wx.EXPAND, 5)
+        folder_sizer.Add(self.label_destination_path, 0, wx.ALL | wx.EXPAND, 5)
         main_sizer.Add(folder_sizer, 0, wx.ALL | wx.EXPAND, 10)
 
         # Sizer per la gestione dell'inserimento del numero di esami da generare.
@@ -187,15 +187,19 @@ class MainFrame(wx.Frame):
                 "option_denomination": "OPZIONE",
                 "include_denomination": "INCLUDERE"
             }
-            self.generator = ExamsGenerator(config)
-            self.select_subject.Clear()
-            self.select_classroom.Clear()
+            
             try:
+                self.generator = ExamsGenerator(config)
+                self.select_subject.Clear()
+                self.select_classroom.Clear()
                 self.select_subject.AppendItems(self.generator.get_subjects())
                 self.select_classroom.AppendItems(list(map(str, self.generator.get_classrooms())))
                 self.label_source_path.SetLabel(f"{self.text_label_source_path} {self.source_path}")
+                self.show_dialog("OK", f"Sorgente caricata correttamente. Individuate {self.generator.get_rows()} domande.")
             except:
-                self.show_dialog("ERRORE", "Riscontrati problemi nell'analisi della sorgente dati.")
+                self.source_path = ""
+                self.show_dialog("Errore", "Riscontrati problemi nell'analisi della sorgente dati.")
+            self.label_source_path.SetLabel(f"{self.text_label_source_path} {self.source_path}")
             self.Layout()
 
 
@@ -204,7 +208,7 @@ class MainFrame(wx.Frame):
             if folder_dialog.ShowModal() == wx.ID_CANCEL:
                 return
             self.destination_path = folder_dialog.GetPath()
-            self.label_dstination_path.SetLabel(f"{self.text_label_dstination_path} {self.destination_path}")
+            self.label_destination_path.SetLabel(f"{self.text_label_dstination_path} {self.destination_path}")
 
 
     def build_config(self) -> bool:
