@@ -2,6 +2,8 @@ import wx
 from examsgenerator import ExamsGenerator
 import threading
 import json
+import openpyxl
+from openpyxl.styles import Side, Border
 
 class Task(threading.Thread):
     def __init__(self, parent_frame):
@@ -28,11 +30,14 @@ class MainFrame(wx.Frame):
         self.panel = wx.Panel(self)
         self.create_widgets()
         self.setup_layout()
-        self.SetSize((600, 950))
+        self.SetSize((600, 900))
+        with open("settings.json", 'r') as j:
+          self.config = json.loads(j.read())
         
 
     def create_widgets(self) -> None:
-        self.image_path = "devil.png"
+        self.image_path = "python.png"
+        self.text_button_template = "Genera template sorgente domande"
         self.text_button_source = "File sorgente..."
         self.text_label_source_path = "Path della sorgente:"
         self.text_dialog_source = "Scegli la sorgente dati"
@@ -52,7 +57,7 @@ class MainFrame(wx.Frame):
         self.text_exams_number = "Numero esami:"
         self.text_questions_number = "Numero domande per esame:"
         self.text_options = "Opzioni:"
-        self.text_button_start = "Genera!"
+        self.text_button_start = "Genera esami!"
         self.text_generation_error = ["Errore", "La generazione ha riscontrato un errore."]
         self.text_analysis_error = ["Errore", "Riscontrati problemi nell'analisi della sorgente dati."]
         self.text_analysis_complete = ["OK", "Sorgente caricata correttamente."]
@@ -66,7 +71,10 @@ class MainFrame(wx.Frame):
         self.source_path = None
         self.destination_path = None
 
-        self.bitmap = wx.StaticBitmap(self.panel, wx.ID_ANY, wx.Bitmap(wx.Image(self.image_path, wx.BITMAP_TYPE_ANY).Rescale(70, 70)))
+        self.bitmap = wx.StaticBitmap(self.panel, wx.ID_ANY, wx.Bitmap(wx.Image(self.image_path, wx.BITMAP_TYPE_ANY)))
+        
+        self.button_template = wx.Button(self.panel, label=self.text_button_template, style=wx.BU_LEFT)
+        self.button_template.Bind(wx.EVT_BUTTON, self.export_template)
 
         self.button_source = wx.Button(self.panel, label=self.text_button_source, style=wx.BU_LEFT)
         self.button_source.Bind(wx.EVT_BUTTON, self.on_choose_file)
@@ -77,6 +85,7 @@ class MainFrame(wx.Frame):
         self.label_destination_path = wx.StaticText(self.panel, label=self.text_label_dstination_path)
 
         self.input_name = wx.TextCtrl(self.panel)
+        self.input_name.SetHint("Prova Scritta Italiano")
 
         self.select_subject = wx.Choice(self.panel, choices=self.subjects)
 
@@ -109,6 +118,7 @@ class MainFrame(wx.Frame):
         main_sizer.Add(self.bitmap, 0, wx.ALL | wx.CENTRE, 10)
 
         file_sizer = wx.BoxSizer(wx.VERTICAL)
+        file_sizer.Add(self.button_template, 0, wx.ALL | wx.CENTRE, 5)
         file_sizer.Add(self.button_source, 0, wx.ALL, 5)
         file_sizer.Add(self.label_source_path, 0, wx.ALL | wx.EXPAND, 5)
         main_sizer.Add(file_sizer, 0, wx.ALL | wx.EXPAND, 10)
@@ -151,9 +161,6 @@ class MainFrame(wx.Frame):
 
 
     def analyze_source(self):
-        with open("settings.json", 'r') as j:
-          self.config = json.loads(j.read())
-        
         self.config["source_path"] = self.source_path
         self.select_subject.Clear()
         self.select_classroom.Clear()
@@ -167,6 +174,28 @@ class MainFrame(wx.Frame):
         except:
             self.source_path = ""
             self.show_dialog(self.text_analysis_error[0], self.text_analysis_error[1])
+
+
+    def export_template(self, event):
+        with wx.DirDialog(self, self.text_dialog_destination, style=wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST) as folder_dialog:
+            if folder_dialog.ShowModal() == wx.ID_CANCEL:
+                return
+            workbook = openpyxl.Workbook()
+            sheet = workbook.active
+            headers = [
+                self.config["subject_denomination"], 
+                self.config["classroom_denomination"], 
+                self.config["include_denomination"], 
+                self.config["question_denomination"], 
+                self.config["solution_denomination"], 
+                f"{self.config['option_denomination']}_1",
+                f"{self.config['option_denomination']}_2",
+                f"{self.config['option_denomination']}_3",
+                f"{self.config['option_denomination']}_4"]
+            for col_num, header in enumerate(headers, 1):
+                cell = sheet.cell(row=1, column=col_num, value=header)
+                cell.border = Border(bottom=Side(style='thin', color='000000'))                
+            workbook.save(f"{folder_dialog.GetPath()}/template.xlsx")
 
 
     def on_choose_file(self, event) -> None:

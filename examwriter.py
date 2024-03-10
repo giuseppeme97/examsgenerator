@@ -88,6 +88,7 @@ class ExamWriter():
                     r = p.add_run(question['options'][i]['text'])
                     p.alignment = WD_PARAGRAPH_ALIGNMENT.JUSTIFY
                     r.bold = question['options'][i]['correct']
+                    r.underline = question['options'][i]['correct']
         
             self.doc.save(f"{self.config['destination_path']}/{self.config['file_name']}_{str(self.exam_number)}.docx")
             if self.config["solutions"]:

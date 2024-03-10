@@ -17,8 +17,8 @@
     "inclusion": false,
     "subject_denomination": "MATERIA",
     "classroom_denomination": "CLASSE",
+    "include_denomination": "INCLUDERE",
     "question_denomination": "DOMANDA",
     "solution_denomination": "CORRETTA",
-    "option_denomination": "OPZIONE",
-    "include_denomination": "INCLUDERE"
+    "option_denomination": "OPZIONE"
 }
