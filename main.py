@@ -1,10 +1,7 @@
 from examsgenerator import ExamsGenerator
-import json
+from settings import settings
 
 if __name__ == "__main__":
-     with open("settings.json", 'r') as file:
-          config = json.loads(file.read())
-
-     generator = ExamsGenerator(config)
+     generator = ExamsGenerator(settings)
      generator.start()
 

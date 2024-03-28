@@ -1,9 +1,9 @@
 import wx
 from examsgenerator import ExamsGenerator
 import threading
-import json
 import openpyxl
 from openpyxl.styles import Side, Border
+from settings import settings
 
 class Task(threading.Thread):
     def __init__(self, parent_frame):
@@ -30,13 +30,11 @@ class MainFrame(wx.Frame):
         self.panel = wx.Panel(self)
         self.create_widgets()
         self.setup_layout()
-        self.SetSize((600, 900))
-        with open("settings.json", 'r') as j:
-          self.config = json.loads(j.read())
+        self.SetSize((600, 820))
+        self.config = settings
         
 
     def create_widgets(self) -> None:
-        self.image_path = "python.png"
         self.text_button_template = "Genera template sorgente domande"
         self.text_button_source = "File sorgente..."
         self.text_label_source_path = "Path della sorgente:"
@@ -65,13 +63,11 @@ class MainFrame(wx.Frame):
         self.text_generation_complete = ["Completato", "Esami generati correttamente!"]
         self.subjects = []
         self.classrooms = []
-        self.default_header = "Compito di ??? - A.S. ????/???? - Classe ??"
+        self.default_header = "Compito di ??? - Classe ?? - A.S. ????/????"
         self.default_exams_number = "5"
         self.default_questions_number = "30"
         self.source_path = None
         self.destination_path = None
-
-        self.bitmap = wx.StaticBitmap(self.panel, wx.ID_ANY, wx.Bitmap(wx.Image(self.image_path, wx.BITMAP_TYPE_ANY)))
         
         self.button_template = wx.Button(self.panel, label=self.text_button_template, style=wx.BU_LEFT)
         self.button_template.Bind(wx.EVT_BUTTON, self.export_template)
@@ -114,8 +110,6 @@ class MainFrame(wx.Frame):
 
     def setup_layout(self) -> None:
         main_sizer = wx.BoxSizer(wx.VERTICAL)
-
-        main_sizer.Add(self.bitmap, 0, wx.ALL | wx.CENTRE, 10)
 
         file_sizer = wx.BoxSizer(wx.VERTICAL)
         file_sizer.Add(self.button_template, 0, wx.ALL | wx.CENTRE, 5)

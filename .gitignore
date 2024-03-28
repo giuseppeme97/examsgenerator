@@ -1,4 +1,6 @@
 venv/
+dist/
+build/
 .DS_Store
 Domande.xlsx
 Domande.csv
